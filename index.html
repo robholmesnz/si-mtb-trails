@@ -1,0 +1,862 @@
+<title>South Island MTB Trails</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap">
+
+<style>
+  /* ── Token system ── */
+  :root {
+    --bg:          #F0EDE8;
+    --bg-surface:  #FAFAF7;
+    --bg-raised:   #FFFFFF;
+    --bg-header:   #E8E4DE;
+    --border:      #D8D3CC;
+    --border-faint:#E6E2DC;
+    --text-primary:#1A2018;
+    --text-secondary:#6B7D68;
+    --text-muted:  #9AAA96;
+    --accent:      #C97A36;
+    --accent-dim:  #E8C49A;
+    --grade-blue:  #2E76BE;
+    --grade-black: #1A1A1A;
+    --grade-dblack:#C42B2B;
+    --grade-mixed: #8B6914;
+    --star-fill:   #C97A36;
+    --row-hover:   rgba(201,122,54,0.06);
+    --sticky-bg:   #E8E4DE;
+    --tag-bg:      rgba(0,0,0,0.07);
+    --shadow:      0 1px 3px rgba(0,0,0,0.1);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg:          #181D18;
+      --bg-surface:  #1F261F;
+      --bg-raised:   #263026;
+      --bg-header:   #141914;
+      --border:      #2D382D;
+      --border-faint:#242E24;
+      --text-primary:#DDE8DA;
+      --text-secondary:#7A9678;
+      --text-muted:  #4E6048;
+      --accent:      #D4894A;
+      --accent-dim:  #6B3E18;
+      --grade-blue:  #5296D5;
+      --grade-black: #C8C8C8;
+      --grade-dblack:#E84040;
+      --grade-mixed: #C8A040;
+      --star-fill:   #D4894A;
+      --row-hover:   rgba(212,137,74,0.08);
+      --sticky-bg:   #141914;
+      --tag-bg:      rgba(255,255,255,0.07);
+      --shadow:      0 1px 4px rgba(0,0,0,0.4);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --bg:          #181D18;
+    --bg-surface:  #1F261F;
+    --bg-raised:   #263026;
+    --bg-header:   #141914;
+    --border:      #2D382D;
+    --border-faint:#242E24;
+    --text-primary:#DDE8DA;
+    --text-secondary:#7A9678;
+    --text-muted:  #4E6048;
+    --accent:      #D4894A;
+    --accent-dim:  #6B3E18;
+    --grade-blue:  #5296D5;
+    --grade-black: #C8C8C8;
+    --grade-dblack:#E84040;
+    --grade-mixed: #C8A040;
+    --star-fill:   #D4894A;
+    --row-hover:   rgba(212,137,74,0.08);
+    --sticky-bg:   #141914;
+    --tag-bg:      rgba(255,255,255,0.07);
+    --shadow:      0 1px 4px rgba(0,0,0,0.4);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: 'DM Sans', system-ui, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+
+  /* ── Header ── */
+  .page-header {
+    background: var(--bg-header);
+    border-bottom: 1px solid var(--border);
+    padding: 20px 24px 16px;
+  }
+
+  .header-top {
+    display: flex;
+    align-items: flex-end;
+    gap: 16px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+  }
+
+  .page-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 36px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    color: var(--text-primary);
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  .page-subtitle {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .grade-legend {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-left: auto;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--text-secondary);
+    white-space: nowrap;
+  }
+
+  /* ── Controls strip ── */
+  .controls {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+    padding: 12px 24px;
+    background: var(--bg-surface);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    box-shadow: var(--shadow);
+  }
+
+  .search-box {
+    flex: 1;
+    min-width: 160px;
+    max-width: 280px;
+    padding: 7px 12px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--bg-raised);
+    color: var(--text-primary);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  .search-box:focus {
+    border-color: var(--accent);
+  }
+
+  .search-box::placeholder {
+    color: var(--text-muted);
+  }
+
+  select.filter-select {
+    padding: 7px 28px 7px 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--bg-raised);
+    color: var(--text-primary);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238A9A88'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 9px center;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  select.filter-select:focus {
+    border-color: var(--accent);
+  }
+
+  .count-badge {
+    margin-left: auto;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+
+  .count-badge span {
+    color: var(--accent);
+    font-weight: 500;
+  }
+
+  /* ── Table wrapper ── */
+  .table-wrap {
+    overflow-x: auto;
+    padding: 0 0 40px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: auto;
+    font-variant-numeric: tabular-nums;
+  }
+
+  thead {
+    position: sticky;
+    top: 53px;
+    z-index: 9;
+  }
+
+  thead th {
+    background: var(--sticky-bg);
+    border-bottom: 2px solid var(--border);
+    padding: 10px 14px;
+    text-align: left;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    user-select: none;
+  }
+
+  thead th.sortable {
+    cursor: pointer;
+    transition: color 0.15s;
+  }
+
+  thead th.sortable:hover {
+    color: var(--accent);
+  }
+
+  thead th.sort-asc::after  { content: ' ↑'; color: var(--accent); }
+  thead th.sort-desc::after { content: ' ↓'; color: var(--accent); }
+
+  thead th:first-child { padding-left: 20px; }
+
+  tbody tr {
+    border-bottom: 1px solid var(--border-faint);
+    transition: background 0.1s;
+  }
+
+  tbody tr:hover {
+    background: var(--row-hover);
+  }
+
+  tbody tr.hidden {
+    display: none;
+  }
+
+  td {
+    padding: 11px 14px;
+    vertical-align: middle;
+  }
+
+  td:first-child { padding-left: 20px; }
+
+  /* ── Row number ── */
+  .row-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--text-muted);
+    width: 32px;
+    text-align: right;
+    padding-right: 6px;
+  }
+
+  /* ── Trail name cell ── */
+  .trail-name a {
+    color: var(--text-primary);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 14px;
+    transition: color 0.15s;
+  }
+
+  .trail-name a:hover {
+    color: var(--accent);
+  }
+
+  .trail-area {
+    font-size: 11.5px;
+    color: var(--text-muted);
+    margin-top: 1px;
+    font-family: 'DM Mono', monospace;
+  }
+
+  /* ── Region tag ── */
+  .region-tag {
+    display: inline-block;
+    padding: 2px 7px;
+    border-radius: 3px;
+    background: var(--tag-bg);
+    font-size: 11.5px;
+    color: var(--text-secondary);
+    white-space: nowrap;
+  }
+
+  /* ── Grade badge ── */
+  .grade-badge {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    white-space: nowrap;
+  }
+
+  .grade-symbol {
+    flex-shrink: 0;
+  }
+
+  .grade-label {
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+
+  /* MTB marker shapes */
+  .marker {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+  }
+
+  .marker-blue {
+    background: var(--grade-blue);
+    border-radius: 2px;
+  }
+
+  .marker-black {
+    background: var(--grade-black);
+    transform: rotate(45deg) scale(0.72);
+    border-radius: 1px;
+  }
+
+  .marker-dblack-wrap {
+    display: flex;
+    gap: 2px;
+    align-items: center;
+  }
+
+  .marker-dblack {
+    width: 13px;
+    height: 13px;
+    background: var(--grade-dblack);
+    transform: rotate(45deg) scale(0.72);
+    border-radius: 1px;
+    flex-shrink: 0;
+  }
+
+  .marker-mixed {
+    background: linear-gradient(135deg, var(--grade-blue) 50%, var(--grade-black) 50%);
+    border-radius: 2px;
+  }
+
+  /* ── Rating ── */
+  .rating-cell {
+    white-space: nowrap;
+  }
+
+  .stars {
+    display: inline-flex;
+    gap: 1px;
+    vertical-align: middle;
+  }
+
+  .star {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--border);
+  }
+
+  .star.filled {
+    background: var(--star-fill);
+  }
+
+  .star.half {
+    background: linear-gradient(90deg, var(--star-fill) 50%, var(--border) 50%);
+  }
+
+  .rating-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-left: 5px;
+    vertical-align: middle;
+  }
+
+  .votes {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-left: 3px;
+  }
+
+  /* ── Numeric cells ── */
+  .num-cell {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    color: var(--text-primary);
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  .num-unit {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-left: 2px;
+  }
+
+  .num-na {
+    color: var(--text-muted);
+    font-size: 12px;
+  }
+
+  /* ── Source badge ── */
+  .source-badge {
+    font-size: 11px;
+    font-family: 'DM Mono', monospace;
+    color: var(--text-muted);
+    background: var(--tag-bg);
+    padding: 2px 5px;
+    border-radius: 3px;
+    white-space: nowrap;
+  }
+
+  .source-badge.tf   { color: var(--accent); }
+  .source-badge.expert { color: var(--text-muted); }
+
+  /* ── Notes ── */
+  .notes-cell {
+    font-size: 12px;
+    color: var(--text-secondary);
+    max-width: 220px;
+    line-height: 1.4;
+  }
+
+  .flag {
+    display: inline-block;
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-size: 10px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin-right: 3px;
+    vertical-align: middle;
+  }
+
+  .flag-multiday {
+    background: rgba(46,118,190,0.15);
+    color: var(--grade-blue);
+  }
+
+  .flag-closed {
+    background: rgba(200,0,0,0.12);
+    color: var(--grade-dblack);
+  }
+
+  .flag-park {
+    background: rgba(201,122,54,0.15);
+    color: var(--accent);
+  }
+
+  /* ── Theme toggle ── */
+  .theme-toggle {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: var(--bg-raised);
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow);
+    transition: border-color 0.15s, background 0.15s;
+    z-index: 100;
+  }
+
+  .theme-toggle:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  /* ── Empty state ── */
+  .empty-row td {
+    text-align: center;
+    padding: 40px;
+    color: var(--text-muted);
+    font-style: italic;
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 700px) {
+    .page-header { padding: 16px; }
+    .controls { padding: 10px 16px; }
+    .page-title { font-size: 28px; }
+    .grade-legend { display: none; }
+    td, thead th { padding: 9px 10px; }
+    td:first-child, thead th:first-child { padding-left: 12px; }
+    .notes-cell { display: none; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition: none !important; }
+  }
+</style>
+
+<div class="page-header">
+  <div class="header-top">
+    <div>
+      <div class="page-subtitle">South Island, New Zealand &mdash; Grade 3 and above</div>
+      <h1 class="page-title">MTB Trail Guide</h1>
+    </div>
+    <div class="grade-legend">
+      <div class="legend-item">
+        <div class="marker marker-blue"></div>
+        Blue / Gr 3
+      </div>
+      <div class="legend-item">
+        <div class="marker marker-black"></div>
+        Black / Gr 4
+      </div>
+      <div class="legend-item">
+        <div class="marker-dblack-wrap">
+          <div class="marker marker-dblack"></div>
+          <div class="marker marker-dblack"></div>
+        </div>
+        Double Black / Gr 5+
+      </div>
+      <div class="legend-item">
+        <div class="marker marker-mixed"></div>
+        Mixed grades
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="controls">
+  <input type="text" class="search-box" id="searchInput" placeholder="Search trails…" aria-label="Search trails">
+
+  <select class="filter-select" id="regionFilter" aria-label="Filter by region">
+    <option value="">All regions</option>
+    <option value="Queenstown-Lakes">Queenstown-Lakes</option>
+    <option value="Nelson-Tasman">Nelson-Tasman</option>
+    <option value="Canterbury">Canterbury</option>
+    <option value="Central Otago">Central Otago</option>
+    <option value="Otago">Otago (Wanaka / Dunedin)</option>
+    <option value="West Coast">West Coast</option>
+    <option value="Marlborough">Marlborough</option>
+    <option value="Southland">Southland</option>
+  </select>
+
+  <select class="filter-select" id="gradeFilter" aria-label="Filter by grade">
+    <option value="">All grades</option>
+    <option value="blue">Blue (Gr 3)</option>
+    <option value="black">Black (Gr 4)</option>
+    <option value="dblack">Double Black (Gr 5+)</option>
+    <option value="mixed">Mixed grades</option>
+  </select>
+
+  <div class="count-badge">Showing <span id="visibleCount">50</span> of 50 trails</div>
+</div>
+
+<div class="table-wrap">
+  <table id="trailTable">
+    <thead>
+      <tr>
+        <th class="row-num" style="width:36px">#</th>
+        <th>Trail</th>
+        <th class="sortable" data-col="region">Region</th>
+        <th class="sortable" data-col="grade" title="Sort by grade">Grade</th>
+        <th class="sortable" data-col="rating" title="Sort by Trailforks rating">TF Rating</th>
+        <th class="sortable" data-col="length" title="Sort by length">Length</th>
+        <th class="sortable" data-col="descent" title="Sort by descent">Descent</th>
+        <th>Source</th>
+        <th>Notes</th>
+      </tr>
+    </thead>
+    <tbody id="trailBody">
+    </tbody>
+  </table>
+</div>
+
+<button class="theme-toggle" id="themeToggle" title="Toggle theme" aria-label="Toggle light/dark theme">☀</button>
+
+<script>
+const trails = [
+  { name:"Salmon Run", url:"https://www.trailforks.com/trails/salmon-run-46269/", region:"Queenstown-Lakes", area:"Fernhill Trails, Queenstown", gradeNum:5, gradeKey:"dblack", gradeLabel:"Gr 5 / ⬛⬛", rating:5.0, votes:21, lengthKm:1.3, descentM:266, source:"tf", notes:"Technical; extreme exposure; 100% handbuilt 2015", flags:[] },
+  { name:"Creeky Winders", url:"https://www.trailforks.com/trails/creeky-winders/", region:"Queenstown-Lakes", area:"Fernhill Trails, Queenstown", gradeNum:5, gradeKey:"dblack", gradeLabel:"Gr 5 / ⬛⬛", rating:5.0, votes:2, lengthKm:0.6, descentM:98, source:"tf", notes:"Slippery roots; expert when wet (only 2 votes)", flags:[] },
+  { name:"McNearlyGnarly", url:"https://www.trailforks.com/trails/mcnearlygnarly/", region:"Queenstown-Lakes", area:"Fernhill Trails, Queenstown", gradeNum:3, gradeKey:"blue", gradeLabel:"Gr 3 / Blue", rating:4.9, votes:29, lengthKm:1.8, descentM:148, source:"tf", notes:"60 rollable jumps; machine groomed; ideal intro jump trail", flags:[] },
+  { name:"Squid Run", url:"https://www.trailforks.com/trails/squid-run/", region:"Queenstown-Lakes", area:"Fernhill Trails, Queenstown", gradeNum:4, gradeKey:"black", gradeLabel:"Gr 4 / Black", rating:4.9, votes:25, lengthKm:3.2, descentM:415, source:"tf", notes:"100% handbuilt; flow, tech, berms, gap jumps, rock gardens", flags:[] },
+  { name:"Peaking Ridge", url:"https://www.trailforks.com/trails/peaking-ridge/", region:"Nelson-Tasman", area:"Fringed Hill, Nelson", gradeNum:5, gradeKey:"dblack", gradeLabel:"Gr 5 / ⬛⬛", rating:4.9, votes:25, lengthKm:2.3, descentM:486, source:"tf", notes:"Long fast rooty downhill; Mammoth Enduro feature trail", flags:[] },
+  { name:"Whaimana", url:"https://www.trailforks.com/trails/whaimana/", region:"Nelson-Tasman", area:"Fringed Hill, Nelson", gradeNum:4, gradeKey:"black", gradeLabel:"Gr 4 / Black", rating:4.9, votes:13, lengthKm:2.7, descentM:623, source:"tf", notes:"Loamy corners, off-camber, dusty chutes; regraded 2021", flags:[] },
+  { name:"Rude Rock", url:"https://www.trailforks.com/trails/rude-rock/", region:"Queenstown-Lakes", area:"Coronet Peak, Queenstown", gradeNum:4, gradeKey:"black", gradeLabel:"Gr 4 / Black", rating:4.8, votes:53, lengthKm:3.4, descentM:353, source:"tf", notes:"World-famous flow trail; follows mountain contours naturally", flags:[] },
+  { name:"Te Ara Koa", url:"https://www.trailforks.com/trails/te-ara-koa/", region:"Nelson-Tasman", area:"Fringed Hill, Nelson", gradeNum:4, gradeKey:"black", gradeLabel:"Gr 4 / Black", rating:4.8, votes:33, lengthKm:5.0, descentM:746, source:"tf", notes:"Ancient roots to flowing descent into Nelson CBD; handbuilt 2017", flags:[] },
+  { name:"629", url:"https://www.trailforks.com/trails/629-22695/", region:"Nelson-Tasman", area:"Fringed Hill, Nelson", gradeNum:4, gradeKey:"black", gradeLabel:"Gr 4 / Black", rating:4.8, votes:28, lengthKm:2.4, descentM:528, source:"tf", notes:"Rooty chutes into beech forest then swoopy pine singletrack", flags:[] },
+  { name:"Dr Strangelove", url:"https://www.trailforks.com/trails/dr-strangelove/", region:"Central Otago", area:"Matangi Station, Alexandra", gradeNum:4, gradeKey:"black", gradeLabel:"Gr 4 / Black", rating:4.7, votes:8, lengthKm:2.4, descentM:242, source:"tf", notes:"'Classic Alex track, has everything' — pass required", flags:[] },
+  { name:"Peak to Pub", url:"https://www.trailforks.com/trails/peak-to-pub/", region:"Otago", area:"Cardrona Bike Park, Wanaka", gradeNum:3, gradeKey:"blue", gradeLabel:"Gr 3 / Blue", rating:4.6, votes:9, lengthKm:5.0, descentM:635, source:"tf", notes:"Berms, bridges, jumps; 635 m vertical", flags:["park"] },
+  { name:"Vertigo", url:"https://www.trailforks.com/trails/vertigo/", region:"Queenstown-Lakes", area:"Skyline Gondola, Queenstown", gradeNum:3, gradeKey:"blue", gradeLabel:"Gr 3 / Blue", rating:4.6, votes:18, lengthKm:1.5, descentM:189, source:"tf", notes:"Built mid-90s by Vertigo Bikes; from gondola summit; rollers & jumps", flags:[] },
+  { name:"Hazard County", url:"https://www.trailforks.com/region/matangi-station-mtb-48058/trails/", region:"Central Otago", area:"Matangi Station, Alexandra", gradeNum:4, gradeKey:"black", gradeLabel:"Gr 4 / Black", rating:4.6, votes:null, lengthKm:null, descentM:null, source:"tf", notes:"Technical schist rock garden descent; pass required", flags:[] },
+  { name:"Heaphy Track", url:"https://www.trailforks.com/trails/heaphy-track/", region:"Nelson-Tasman", area:"Kahurangi National Park", gradeNum:4, gradeKey:"black", gradeLabel:"Gr 4 / Black", rating:4.6, votes:9, lengthKm:73.5, descentM:2207, source:"tf", notes:"Multi-day epic through beech forest & coastline", flags:["multiday"] },
+  { name:"Hogs Back", url:"https://www.trailforks.com/trails/hogs-back/", region:"Canterbury", area:"Craigieburn Forest Park", gradeNum:3, gradeKey:"blue", gradeLabel:"Gr 3 / Blue", rating:4.5, votes:19, lengthKm:6.4, descentM:214, source:"tf", notes:"Mars-scape alpine singletrack; Oct–Apr only", flags:[] },
+  { name:"The GC", url:"https://www.trailforks.com/trails/the-gc/", region:"Canterbury", area:"Christchurch Adventure Park", gradeNum:5, gradeKey:"dblack", gradeLabel:"Gr 5 / ⬛⬛", rating:4.5, votes:8, lengthKm:1.8, descentM:355, source:"tf", notes:"World-class DH race track; jumps, drops, rock gardens, chutes", flags:["park"] },
+  { name:"Old Ghost Road", url:"https://www.trailforks.com/trails/old-ghost-road/", region:"West Coast", area:"Westport, West Coast", gradeNum:4, gradeKey:"black", gradeLabel:"Gr 4 / Black", rating:4.5, votes:34, lengthKm:85, descentM:2936, source:"tf", notes:"NZ's longest singletrack; 5 huts; 3–4 day ride", flags:["multiday"] },
+  { name:"Phoenix", url:"https://www.trailforks.com/trails/phoenix-25555/", region:"Queenstown-Lakes", area:"7 Mile Riding Area, Queenstown", gradeNum:3, gradeKey:"blue", gradeLabel:"Gr 3 / Blue", rating:4.5, votes:10, lengthKm:1.4, descentM:84, source:"tf", notes:"Lake Wakatipu & Remarkables views; roller coaster descent", flags:[] },
+  { name:"Kaka Track", url:"https://www.mtbproject.com/trail/7056192/kaka-track", region:"Nelson-Tasman", area:"St Arnaud, Nelson Lakes NP", gradeNum:3, gradeKey:"blue", gradeLabel:"Gr 3 / Blue", rating:5.0, votes:null, lengthKm:2.4, descentM:null, source:"mtb", notes:"MTB Project 5★; flowing singletrack through Nelson Lakes NP beech forest", flags:[] },
+  { name:"Duck Down Track", url:"https://www.mtbproject.com/trail/7056251/duck-down-track", region:"Nelson-Tasman", area:"St Arnaud, Nelson Lakes NP", gradeNum:4, gradeKey:"black", gradeLabel:"Gr 4 / Black", rating:5.0, votes:null, lengthKm:2.1, descentM:null, source:"mtb", notes:"MTB Project 5★; technical expert singletrack; Nelson Lakes NP", flags:[] },
+  { name:"The Luge", url:"https://www.mtbproject.com/trail/7056271/the-luge", region:"Canterbury", area:"Craigieburn Forest Park", gradeNum:4, gradeKey:"black", gradeLabel:"Gr 4 / Black", rating:5.0, votes:null, lengthKm:2.4, descentM:null, source:"mtb", notes:"MTB Project 5★; classic Craigieburn descent from ridgeline", flags:[] },
+  { name:"The Edge", url:"https://www.mtbproject.com/trail/7056258/the-edge", region:"Canterbury", area:"Craigieburn Forest Park", gradeNum:4, gradeKey:"black", gradeLabel:"Gr 4 / Black", rating:5.0, votes:null, lengthKm:4.1, descentM:null, source:"mtb", notes:"MTB Project 5★; traverses scree slopes; technical singletrack", flags:[] },
+  { name:"Dream Track", url:"https://www.trailforks.com/trails/dream-track/", region:"Queenstown-Lakes", area:"Fernhill Trails, Queenstown", gradeNum:5, gradeKey:"dblack", gradeLabel:"Gr 5 / ⬛⬛", rating:4.5, votes:9, lengthKm:0.6, descentM:85, source:"tf", notes:"Big jump trail; built for New World Disorder 5 (2004)", flags:[] },
+  { name:"5th Amendment", url:"https://www.trailforks.com/trails/prospector-499189/", region:"Central Otago", area:"Matangi Station, Alexandra", gradeNum:3, gradeKey:"mixed", gradeLabel:"Gr 3–4 / Mixed", rating:4.5, votes:null, lengthKm:null, descentM:null, source:"tf", notes:"Matangi Station flowing singletrack through schist formations; pass required", flags:[] },
+  { name:"Millennium Track", url:"https://www.trailforks.com/trails/millennium-track/", region:"Otago", area:"Glendhu Bay, Wanaka", gradeNum:3, gradeKey:"blue", gradeLabel:"Gr 3 / Blue", rating:4.2, votes:11, lengthKm:11.7, descentM:175, source:"tf", notes:"'Scenic in the extreme'; lake & mountain views; both directions", flags:[] },
+  { name:"Airtearoa (Upper Half)", url:"https://www.trailforks.com/trails/airtearoa-upper-half/", region:"Canterbury", area:"Christchurch Adventure Park", gradeNum:4, gradeKey:"black", gradeLabel:"Gr 4 / Black", rating:4.3, votes:null, lengthKm:3.2, descentM:231, source:"tf", notes:"First machine jump trail in the Southern Hemisphere", flags:["closed","park"] },
+  { name:"St James Cycle Trail", url:"https://www.trailforks.com/trails/st-james-cycle-trail/", region:"Canterbury", area:"Hanmer Springs, Canterbury", gradeNum:4, gradeKey:"black", gradeLabel:"Gr 4 / Black", rating:4.0, votes:7, lengthKm:60, descentM:1435, source:"tf", notes:"High-country epic through alpine meadows & beech forest; Nov–Apr", flags:["multiday"] },
+  { name:"Addiction", url:"https://www.trailforks.com/trails/addiction-148711/", region:"Canterbury", area:"Hanmer Springs, Canterbury", gradeNum:4, gradeKey:"black", gradeLabel:"Gr 4 / Black", rating:3.9, votes:11, lengthKm:5.2, descentM:488, source:"tf", notes:"Alpine XC/DH with optional double-black finish on Mike's Mad Mile", flags:[] },
+  { name:"Coronet DH", url:"https://www.trailforks.com/trails/coronet-dh/", region:"Queenstown-Lakes", area:"Coronet Peak, Queenstown", gradeNum:4, gradeKey:"black", gradeLabel:"Gr 4 / Black", rating:3.6, votes:10, lengthKm:1.9, descentM:428, source:"tf", notes:"Chairlift or hike access; berms, drops, gap jumps; clay — avoid in rain", flags:[] },
+  { name:"Fernhill Loop", url:"https://www.trailforks.com/trails/fernhill-loop/", region:"Queenstown-Lakes", area:"Fernhill Trails, Queenstown", gradeNum:3, gradeKey:"mixed", gradeLabel:"Gr 3–4 / Mixed", rating:null, votes:null, lengthKm:8.0, descentM:490, source:"expert", notes:"Classic Queenstown XC loop linking all Fernhill trails", flags:[] },
+  { name:"Rameka Track", url:"https://www.trailforks.com/trails/lrt-lower-rameka-track/", region:"Nelson-Tasman", area:"Takaka Hill, Nelson", gradeNum:3, gradeKey:"mixed", gradeLabel:"Gr 3–4 / Mixed", rating:null, votes:null, lengthKm:18, descentM:null, source:"expert", notes:"Sustained XC through native bush; technical descent to valley", flags:[] },
+  { name:"Krankenstein", url:"https://www.trailforks.com/region/nelson-5259/trails/", region:"Nelson-Tasman", area:"Fringed Hill, Nelson", gradeNum:5, gradeKey:"dblack", gradeLabel:"Gr 5 / ⬛⬛", rating:null, votes:null, lengthKm:null, descentM:null, source:"expert", notes:"Steep rocky chutes & ridge riding; Mammoth Enduro staple; best dry", flags:[] },
+  { name:"Wairoa Gorge Bike Park", url:"https://mtbtrails.nz/", region:"Nelson-Tasman", area:"Wairoa Valley, south of Nelson", gradeNum:4, gradeKey:"mixed", gradeLabel:"Gr 3–6 / Mixed", rating:null, votes:null, lengthKm:70, descentM:1000, source:"expert", notes:"70 km+ handbuilt singletrack; ~1000 m descent per lap; shuttle uplift", flags:["park"] },
+  { name:"Dun Mountain / Coppermine", url:"https://www.trailforks.com/route/dun-mountain-little-twin-dew-lakes/", region:"Nelson-Tasman", area:"Nelson", gradeNum:3, gradeKey:"mixed", gradeLabel:"Gr 3–4 / Mixed", rating:null, votes:null, lengthKm:25, descentM:null, source:"expert", notes:"Classic Nelson backcountry loop; historic railway ridge; rocky descent", flags:[] },
+  { name:"Codgers MTB Park (P51)", url:"https://www.trailforks.com/region/nelson-5259/trails/", region:"Nelson-Tasman", area:"Brook Valley, Nelson", gradeNum:3, gradeKey:"blue", gradeLabel:"Gr 3 / Blue", rating:null, votes:null, lengthKm:3, descentM:null, source:"expert", notes:"Purpose-built flow with berms & small jumps; compact city park", flags:["park"] },
+  { name:"Queen Charlotte Track", url:"https://www.trailforks.com/route/queen-charlotte-track/", region:"Marlborough", area:"Marlborough Sounds, Picton", gradeNum:3, gradeKey:"mixed", gradeLabel:"Gr 3–4 / Mixed", rating:null, votes:null, lengthKm:73, descentM:null, source:"expert", notes:"Multi-day iconic singletrack along Marlborough Sounds ridgelines", flags:["multiday"] },
+  { name:"Whites Bay Loop", url:"https://www.singletracks.com/mtb-trails/destination-guide-nelson-nz/", region:"Marlborough", area:"Blenheim, Marlborough", gradeNum:3, gradeKey:"mixed", gradeLabel:"Gr 3–4 / Mixed", rating:null, votes:null, lengthKm:15, descentM:null, source:"expert", notes:"Singletrack, roots, steep chutes, rock gardens; descends to beach", flags:[] },
+  { name:"Sticky Forest", url:"https://www.trailforks.com/region/sticky-forest/", region:"Otago", area:"Wanaka", gradeNum:3, gradeKey:"mixed", gradeLabel:"Gr 3–4 / Mixed", rating:null, votes:null, lengthKm:30, descentM:null, source:"expert", notes:"20+ trails; natural loam; range from flow to technical; 10 min from town", flags:[] },
+  { name:"Bike Glendhu", url:"https://www.trailforks.com/region/bike-glendhu-bike-park/", region:"Otago", area:"Glendhu Bay, Wanaka", gradeNum:3, gradeKey:"mixed", gradeLabel:"Gr 3–5 / Mixed", rating:null, votes:null, lengthKm:null, descentM:null, source:"expert", notes:"Professionally-built flow & technical; shuttle & pedal options", flags:["park"] },
+  { name:"Arcadia", url:"https://www.trailforks.com/region/cardrona-bike-park-nz/trails/", region:"Otago", area:"Cardrona Bike Park, Wanaka", gradeNum:4, gradeKey:"black", gradeLabel:"Gr 4 / Black", rating:null, votes:null, lengthKm:1.7, descentM:309, source:"expert", notes:"Top Cardrona black run; sustained descent with technical features", flags:["park"] },
+  { name:"Resurrection", url:"https://www.trailforks.com/trails/resurrection-499160/", region:"Central Otago", area:"Matangi Station, Alexandra", gradeNum:4, gradeKey:"black", gradeLabel:"Gr 4 / Black", rating:null, votes:null, lengthKm:null, descentM:null, source:"expert", notes:"Technical Matangi descent through schist landscape; pass required", flags:[] },
+  { name:"Panhead", url:"https://www.trailforks.com/region/alexandra/trails/", region:"Central Otago", area:"Alexandra, Central Otago", gradeNum:3, gradeKey:"mixed", gradeLabel:"Gr 3–4 / Mixed", rating:4.4, votes:null, lengthKm:null, descentM:null, source:"tf", notes:"Popular Alexandra area singletrack", flags:[] },
+  { name:"Naseby Forest (Cliffhanger)", url:"https://www.trailforks.com/region/naseby-forest/trails/", region:"Central Otago", area:"Naseby Forest, Naseby", gradeNum:4, gradeKey:"black", gradeLabel:"Gr 4 / Black", rating:null, votes:null, lengthKm:0.6, descentM:null, source:"expert", notes:"One of Naseby's 97-trail network standouts; gold mining history throughout", flags:[] },
+  { name:"Flat Top Hill", url:"https://www.trailforks.com/region/alexandra/trails/", region:"Central Otago", area:"Alexandra, Central Otago", gradeNum:3, gradeKey:"mixed", gradeLabel:"Gr 3–4 / Mixed", rating:null, votes:null, lengthKm:15, descentM:null, source:"expert", notes:"Sphinx Rock climb to panoramic schist plateau; flowing descent", flags:[] },
+  { name:"Whare Flat Trails", url:"https://www.trailforks.com/region/whare-flat/", region:"Otago", area:"Dunedin", gradeNum:3, gradeKey:"mixed", gradeLabel:"Gr 3–4 / Mixed", rating:null, votes:null, lengthKm:null, descentM:null, source:"expert", notes:"Natural soft dirt; loamy singletrack; natural trail style riding", flags:[] },
+  { name:"Signal Hill Trails", url:"https://www.trailforks.com/region/signal-hill/", region:"Otago", area:"Dunedin", gradeNum:3, gradeKey:"mixed", gradeLabel:"Gr 3–4 / Mixed", rating:null, votes:null, lengthKm:null, descentM:null, source:"expert", notes:"Well-maintained city trails; technical climbs; harbour views", flags:[] },
+  { name:"Jack's Point Trail", url:"https://www.trailforks.com/trails/jacks-point-trail/", region:"Queenstown-Lakes", area:"Jack's Point, Queenstown", gradeNum:3, gradeKey:"blue", gradeLabel:"Gr 3 / Blue", rating:null, votes:null, lengthKm:6.5, descentM:166, source:"expert", notes:"Scenic lakeside singletrack; Remarkables backdrop; great for visiting riders", flags:[] },
+  { name:"Welcome Rock Trails", url:"https://southlandnz.com/listing/welcome-rock-trails/1012/", region:"Southland", area:"Garston, Southland", gradeNum:3, gradeKey:"blue", gradeLabel:"Gr 3 / Blue", rating:null, votes:null, lengthKm:70, descentM:null, source:"expert", notes:"Single-track circuit around high-country hilltop; 2 huts; stunning views", flags:["multiday"] },
+  { name:"Around the Mountains Cycle Trail", url:"https://en.wikipedia.org/wiki/Around_the_Mountains_Cycle_Trail", region:"Southland", area:"Te Anau to Queenstown corridor", gradeNum:3, gradeKey:"mixed", gradeLabel:"Gr 3–4 / Mixed", rating:null, votes:null, lengthKm:214, descentM:null, source:"expert", notes:"7-day Southland epic; gnarly crossings, open tussock, alpine sections", flags:["multiday"] },
+  { name:"Craigieburn Trail (full traverse)", url:"https://www.craigieburntrails.org.nz/", region:"Canterbury", area:"Craigieburn Forest Park", gradeNum:3, gradeKey:"mixed", gradeLabel:"Gr 3–4 / Mixed", rating:null, votes:null, lengthKm:24, descentM:null, source:"expert", notes:"Full Flock Hill to Castle Hill traverse linking Hogs Back, The Luge, The Edge", flags:[] },
+
+  // ── Trails 51–75 ──────────────────────────────────────────────────────────
+  { name:"Morning Glory", url:"https://www.trailforks.com/trails/morning-glory-604398/", region:"Queenstown-Lakes", area:"Coronet Peak, Queenstown", gradeNum:3, gradeKey:"blue", gradeLabel:"Gr 3 / Blue", rating:5.0, votes:14, lengthKm:1.8, descentM:125, source:"tf", notes:"Super flowy blue; berms, rollers, rollable jumps; 93% five-star ratings", flags:["park"] },
+  { name:"Hot Rod", url:"https://www.trailforks.com/trails/hot-rod-343814/", region:"Queenstown-Lakes", area:"Coronet Peak, Queenstown", gradeNum:3, gradeKey:"blue", gradeLabel:"Gr 3 / Blue", rating:4.9, votes:25, lengthKm:2.9, descentM:297, source:"tf", notes:"Non-stop berms and fun safe jumps; flowy all the way down; Oct–Apr", flags:["park"] },
+  { name:"Baywatch Upper", url:"https://www.trailforks.com/trails/baywatchupper/", region:"Otago", area:"Bike Glendhu, Wanaka", gradeNum:4, gradeKey:"black", gradeLabel:"Gr 4 / Black", rating:5.0, votes:6, lengthKm:2.3, descentM:227, source:"tf", notes:"NZ Mountain Biker: 'stupidly fun blue flow trail with optional rock rollers and features'; links to Boulders Cross", flags:["park"] },
+  { name:"Tombstone", url:"https://www.trailforks.com/trails/tombstone-298409/", region:"Canterbury", area:"Hanmer Springs, Canterbury", gradeNum:4, gradeKey:"black", gradeLabel:"Gr 4 / Black", rating:4.8, votes:27, lengthKm:4.5, descentM:247, source:"tf", notes:"Jollies Pass alpine descent; 4.5 km black with exhilarating steep finish", flags:[] },
+  { name:"SMC", url:"https://www.trailforks.com/trails/smc-351828/", region:"Canterbury", area:"Christchurch Adventure Park", gradeNum:4, gradeKey:"black", gradeLabel:"Gr 4 / Black", rating:5.0, votes:5, lengthKm:0.6, descentM:111, source:"tf", notes:"100% five-star rated black; lift-access adventure park trail", flags:["park"] },
+  { name:"Double Vision", url:"https://www.trailforks.com/trails/double-vision-474137/", region:"Canterbury", area:"Christchurch Adventure Park", gradeNum:4, gradeKey:"black", gradeLabel:"Gr 4 / Black", rating:4.8, votes:5, lengthKm:1.0, descentM:175, source:"tf", notes:"Lift-access black; signature cave section and chute; grade reversals manage speed; built by Matt West's crew", flags:["park"] },
+  { name:"KY", url:"https://www.trailforks.com/trails/ky", region:"Queenstown-Lakes", area:"Ben Lomond, Queenstown", gradeNum:4, gradeKey:"black", gradeLabel:"Gr 4 / Black", rating:4.8, votes:11, lengthKm:0.2, descentM:38, source:"tf", notes:"Tight built-up berms throughout; 82% five-star; short but pure and dialled", flags:[] },
+  { name:"Murphy's Run", url:"https://www.trailforks.com/trails/murphy-s-run/", region:"Queenstown-Lakes", area:"Arrowtown Trails, Arrowtown", gradeNum:3, gradeKey:"blue", gradeLabel:"Gr 3 / Blue", rating:4.7, votes:9, lengthKm:1.4, descentM:172, source:"tf", notes:"Traverses from Tobins Track down to the Arrow River; intermediate with exposure", flags:[] },
+  { name:"G.S.D.", url:"https://www.trailforks.com/trails/g-s-d/", region:"Queenstown-Lakes", area:"Ben Lomond, Queenstown", gradeNum:5, gradeKey:"dblack", gradeLabel:"Gr 5 / ⬛⬛", rating:4.7, votes:10, lengthKm:0.5, descentM:132, source:"tf", notes:"Most technical on Ben Lomond; fast upper into rooty gnarly beech forest", flags:[] },
+  { name:"Ant's Track", url:"https://www.trailforks.com/trails/ant-s-track/", region:"Queenstown-Lakes", area:"Ben Lomond, Queenstown", gradeNum:5, gradeKey:"dblack", gradeLabel:"Gr 5 / ⬛⬛", rating:4.7, votes:11, lengthKm:0.4, descentM:120, source:"tf", notes:"Old school gnarly; raw and rooty; 27% avg grade; DH bike recommended", flags:[] },
+  { name:"Huck Yeah!", url:"https://www.trailforks.com/trails/huck-yeah/", region:"Queenstown-Lakes", area:"Ben Lomond, Queenstown", gradeNum:4, gradeKey:"black", gradeLabel:"Gr 4 / Black", rating:4.6, votes:11, lengthKm:0.4, descentM:49, source:"tf", notes:"Line of table-top jumps; machine groomed; pump each feature to the next", flags:[] },
+  { name:"Baywatch Lower", url:"https://www.trailforks.com/trails/baywatch-lower", region:"Otago", area:"Bike Glendhu, Wanaka", gradeNum:4, gradeKey:"black", gradeLabel:"Gr 4 / Black", rating:4.6, votes:7, lengthKm:1.1, descentM:90, source:"tf", notes:"Flowy singletrack with berms and optional jumps; continues from Upper Baywatch", flags:["park"] },
+  { name:"Arrow Gorge Trail", url:"https://www.trailforks.com/trails/arrow-gorge-trail/", region:"Queenstown-Lakes", area:"Arrowtown Trails, Arrowtown", gradeNum:3, gradeKey:"blue", gradeLabel:"Gr 3 / Blue", rating:5.0, votes:1, lengthKm:1.8, descentM:71, source:"tf", notes:"Alternate Coronet Loop finish; narrow bench above Arrow Gorge with exposure — only 1 Trailforks vote; treat as low confidence", flags:[] },
+  { name:"Sphinx Rock Track", url:"https://www.trailforks.com/trails/sphinx-rock-track/", region:"Central Otago", area:"Alexandra, Central Otago", gradeNum:3, gradeKey:"blue", gradeLabel:"Gr 3 / Blue", rating:4.5, votes:12, lengthKm:5.7, descentM:399, source:"tf", notes:"Links Flat Top Hill trails to Alexandra; climb to Sphinx Rock then flowing descent", flags:[] },
+  { name:"Kirwans Track", url:"https://www.trailforks.com/trails/kirwans-track/", region:"West Coast", area:"Reefton, West Coast", gradeNum:4, gradeKey:"black", gradeLabel:"Gr 4 / Black", rating:4.4, votes:6, lengthKm:12.4, descentM:1186, source:"tf", notes:"NZ Mountain Biker: 'main draw card bringing mountain bikers to Reefton'; big climb then 1186m descent — mostly benched singletrack with technical sections and some carrying", flags:[] },
+  { name:"Machine Track", url:"https://www.trailforks.com/trails/machine-track/", region:"West Coast", area:"Reefton, West Coast", gradeNum:4, gradeKey:"black", gradeLabel:"Gr 4 / Black", rating:4.4, votes:6, lengthKm:1.9, descentM:408, source:"tf", notes:"Loop via historic Ajax Mine and Stamper Battery; mostly benched singletrack; last 2km steep and technical DH into Reefton", flags:[] },
+  { name:"Dirt Serpent", url:"https://www.trailforks.com/trails/dirt-serpent-524292/", region:"Queenstown-Lakes", area:"Coronet Peak, Queenstown", gradeNum:4, gradeKey:"black", gradeLabel:"Gr 4 / Black", rating:4.5, votes:3, lengthKm:3.1, descentM:359, source:"tf", notes:"Lots of flow and jumps; berms, drops; lift-access Coronet Peak trail", flags:["park"] },
+  { name:"Zoot Track", url:"https://www.trailforks.com/trails/zoot-track/", region:"Queenstown-Lakes", area:"Coronet Peak, Queenstown", gradeNum:4, gradeKey:"black", gradeLabel:"Gr 4 / Black", rating:4.4, votes:25, lengthKm:1.1, descentM:166, source:"tf", notes:"Fast and fun; lots of optional side lines; -14.7% avg grade; lift access", flags:["park"] },
+  { name:"Waiuta Track", url:"https://www.trailforks.com/trails/waiuta-track/", region:"West Coast", area:"Reefton, West Coast", gradeNum:4, gradeKey:"black", gradeLabel:"Gr 4 / Black", rating:4.5, votes:2, lengthKm:11.7, descentM:532, source:"tf", notes:"NZ Pocket Guide: 'mud, corduroy, flowing sections, smooth downhill through beech forest to ghost town'; 99% rideable in dry — much harder when wet", flags:[] },
+  { name:"Upper Wynyard Express", url:"https://www.trailforks.com/trails/upper-wynyard-express/", region:"Queenstown-Lakes", area:"Wynyard/Fernhill, Queenstown", gradeNum:3, gradeKey:"blue", gradeLabel:"Gr 3 / Blue", rating:4.4, votes:8, lengthKm:0.3, descentM:42, source:"tf", notes:"Back-to-back berms with rollable drops; connects into Fernhill network", flags:[] },
+  { name:"Black and Blue", url:"https://www.trailforks.com/trails/black-and-blue-118926/", region:"Central Otago", area:"Alexandra, Central Otago", gradeNum:3, gradeKey:"blue", gradeLabel:"Gr 3 / Blue", rating:4.3, votes:10, lengthKm:4.3, descentM:248, source:"tf", notes:"Blue descent with optional black step-downs and rock gaps; choose your difficulty", flags:[] },
+  { name:"Coronet Loop", url:"https://www.trailforks.com/trails/coronet-loop/", region:"Queenstown-Lakes", area:"Arrowtown Trails, Arrowtown", gradeNum:3, gradeKey:"blue", gradeLabel:"Gr 3 / Blue", rating:4.2, votes:5, lengthKm:22.4, descentM:694, source:"tf", notes:"NZ Mountain Biker feature trail; singletrack through beech forest, river gorges and goldfields; starts/ends Arrowtown; 4–8 hrs", flags:[] },
+  { name:"Debacle", url:"https://www.trailforks.com/trails/debacle-71516/", region:"Otago", area:"Signal Hill, Dunedin", gradeNum:4, gradeKey:"black", gradeLabel:"Gr 4 / Black", rating:4.1, votes:10, lengthKm:0.7, descentM:92, source:"tf", notes:"Rock rollers with optional chicken lines; Signal Hill Dunedin staple", flags:[] },
+  { name:"Motatapu Track", url:"https://www.trailforks.com/route/motatapu/", region:"Otago", area:"Wanaka to Arrowtown", gradeNum:4, gradeKey:"black", gradeLabel:"Gr 4 / Black", rating:null, votes:null, lengthKm:57, descentM:null, source:"expert", notes:"High-country traverse from Wanaka to Arrowtown via ridgelines; 2-day classic", flags:["multiday"] },
+  { name:"Broadway Trail", url:"https://www.trailforks.com/trails/broadway-trail/", region:"West Coast", area:"Reefton, West Coast", gradeNum:3, gradeKey:"blue", gradeLabel:"Gr 3 / Blue", rating:4.0, votes:3, lengthKm:2.0, descentM:229, source:"tf", notes:"Reefton's most-ridden blue descent (136+ Trailforks activities); 229m descent; steep and open singletrack — low formal ratings but high local traffic", flags:[] }
+];
+
+// Render grade symbol
+function gradeSymbol(key) {
+  if (key === 'blue') {
+    return `<div class="grade-badge"><div class="marker marker-blue"></div><span class="grade-label">Blue</span></div>`;
+  } else if (key === 'black') {
+    return `<div class="grade-badge"><div class="marker marker-black"></div><span class="grade-label">Black</span></div>`;
+  } else if (key === 'dblack') {
+    return `<div class="grade-badge"><div class="marker-dblack-wrap"><div class="marker marker-dblack"></div><div class="marker marker-dblack"></div></div><span class="grade-label">Dbl Black</span></div>`;
+  } else {
+    return `<div class="grade-badge"><div class="marker marker-mixed"></div><span class="grade-label">Mixed</span></div>`;
+  }
+}
+
+// Render stars (dots)
+function ratingDots(r) {
+  if (r === null) return '<span class="num-na">–</span>';
+  const dots = [];
+  for (let i = 1; i <= 5; i++) {
+    if (r >= i) dots.push('<div class="star filled"></div>');
+    else if (r >= i - 0.5) dots.push('<div class="star half"></div>');
+    else dots.push('<div class="star"></div>');
+  }
+  return `<div class="rating-cell"><div class="stars">${dots.join('')}</div><span class="rating-num">${r.toFixed(1)}</span></div>`;
+}
+
+function numCell(val, unit, decimals=1) {
+  if (val === null || val === undefined) return '<td class="num-cell"><span class="num-na">–</span></td>';
+  const formatted = Number.isInteger(val) ? val : val.toFixed(decimals);
+  return `<td class="num-cell">${formatted}<span class="num-unit">${unit}</span></td>`;
+}
+
+function sourceBadge(src) {
+  if (src === 'tf') return '<span class="source-badge tf">Trailforks</span>';
+  if (src === 'mtb') return '<span class="source-badge tf">MTB Project</span>';
+  return '<span class="source-badge expert">Editorial</span>';
+}
+
+function flagBadges(flags) {
+  return flags.map(f => {
+    if (f === 'multiday') return '<span class="flag flag-multiday">Multi-day</span>';
+    if (f === 'closed')   return '<span class="flag flag-closed">Closed</span>';
+    if (f === 'park')     return '<span class="flag flag-park">Bike Park</span>';
+    return '';
+  }).join('');
+}
+
+let sortCol = null;
+let sortDir = 1; // 1=asc, -1=desc
+let currentSearch = '';
+let currentRegion = '';
+let currentGrade = '';
+
+function renderTable(data) {
+  const tbody = document.getElementById('trailBody');
+  tbody.innerHTML = '';
+  let displayIndex = 1;
+  data.forEach((t, i) => {
+    const tr = document.createElement('tr');
+    tr.dataset.name   = t.name.toLowerCase();
+    tr.dataset.region = t.region;
+    tr.dataset.grade  = t.gradeKey;
+
+    const isVisible = matchesFilters(t);
+    if (!isVisible) tr.classList.add('hidden');
+    else displayIndex++;
+
+    tr.innerHTML = `
+      <td class="row-num">${i+1}</td>
+      <td class="trail-name">
+        <a href="${t.url}" target="_blank" rel="noopener">${t.name}</a>
+        <div class="trail-area">${t.area}</div>
+      </td>
+      <td><span class="region-tag">${t.region}</span></td>
+      <td>${gradeSymbol(t.gradeKey)}</td>
+      <td>${ratingDots(t.rating)}${t.votes ? `<span class="votes">(${t.votes})</span>` : ''}</td>
+      ${numCell(t.lengthKm, ' km', 1)}
+      ${numCell(t.descentM, ' m', 0)}
+      <td>${sourceBadge(t.source)}</td>
+      <td class="notes-cell">${flagBadges(t.flags)}${t.notes}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function matchesFilters(t) {
+  if (currentSearch && !t.name.toLowerCase().includes(currentSearch.toLowerCase()) &&
+      !t.area.toLowerCase().includes(currentSearch.toLowerCase())) return false;
+  if (currentRegion && !t.region.includes(currentRegion)) return false;
+  if (currentGrade && t.gradeKey !== currentGrade) return false;
+  return true;
+}
+
+function applyFilters() {
+  const rows = document.querySelectorAll('#trailBody tr');
+  let visible = 0;
+  rows.forEach(tr => {
+    const name   = tr.dataset.name || '';
+    const region = tr.dataset.region || '';
+    const grade  = tr.dataset.grade || '';
+    const nameMatch   = !currentSearch || name.includes(currentSearch.toLowerCase()) ||
+                        tr.querySelector('.trail-area')?.textContent.toLowerCase().includes(currentSearch.toLowerCase());
+    const regionMatch = !currentRegion || region.includes(currentRegion);
+    const gradeMatch  = !currentGrade  || grade === currentGrade;
+    const show = nameMatch && regionMatch && gradeMatch;
+    tr.classList.toggle('hidden', !show);
+    if (show) visible++;
+  });
+  document.getElementById('visibleCount').textContent = visible;
+}
+
+function sortTrails(col) {
+  if (sortCol === col) { sortDir *= -1; }
+  else { sortCol = col; sortDir = col === 'rating' || col === 'descent' || col === 'length' ? -1 : 1; }
+
+  // Update header classes
+  document.querySelectorAll('thead th').forEach(th => {
+    th.classList.remove('sort-asc', 'sort-desc');
+    if (th.dataset.col === col) th.classList.add(sortDir === 1 ? 'sort-asc' : 'sort-desc');
+  });
+
+  const sorted = [...trails].sort((a, b) => {
+    let av, bv;
+    if (col === 'rating')  { av = a.rating  ?? -1; bv = b.rating  ?? -1; }
+    if (col === 'grade')   { av = a.gradeNum ?? 0;  bv = b.gradeNum ?? 0; }
+    if (col === 'length')  { av = a.lengthKm ?? -1; bv = b.lengthKm ?? -1; }
+    if (col === 'descent') { av = a.descentM ?? -1; bv = b.descentM ?? -1; }
+    if (col === 'region')  { av = a.region;          bv = b.region; return sortDir * av.localeCompare(bv); }
+    if (av === bv) return 0;
+    return sortDir * (av < bv ? -1 : 1);
+  });
+  renderTable(sorted);
+  applyFilters();
+}
+
+// Init
+renderTable(trails);
+
+// Events
+document.querySelectorAll('thead th.sortable').forEach(th => {
+  th.addEventListener('click', () => sortTrails(th.dataset.col));
+});
+
+document.getElementById('searchInput').addEventListener('input', e => {
+  currentSearch = e.target.value;
+  applyFilters();
+});
+
+document.getElementById('regionFilter').addEventListener('change', e => {
+  currentRegion = e.target.value;
+  applyFilters();
+});
+
+document.getElementById('gradeFilter').addEventListener('change', e => {
+  currentGrade = e.target.value;
+  applyFilters();
+});
+
+// Theme toggle
+const root = document.documentElement;
+const btn = document.getElementById('themeToggle');
+btn.addEventListener('click', () => {
+  const current = root.getAttribute('data-theme');
+  if (current === 'dark') { root.setAttribute('data-theme','light'); btn.textContent = '☾'; }
+  else if (current === 'light') { root.removeAttribute('data-theme'); btn.textContent = '☀'; }
+  else { root.setAttribute('data-theme','dark'); btn.textContent = '☾'; }
+});
+</script>
