@@ -446,6 +446,15 @@
     vertical-align: middle;
   }
 
+  .weighted-cell {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+    text-align: right;
+    white-space: nowrap;
+  }
+
   .votes {
     font-family: 'DM Mono', monospace;
     font-size: 11px;
@@ -686,6 +695,7 @@
         <th class="sortable" data-col="region">Region</th>
         <th class="sortable" data-col="grade" title="Sort by grade">Grade</th>
         <th class="sortable" data-col="rating" title="Sort by Trailforks rating">TF Rating</th>
+        <th class="sortable" data-col="weighted" title="Rating weighted by vote count - a 5.0 from 2 votes ranks below a 4.8 from 50 votes">Score</th>
         <th class="sortable" data-col="localPop" title="Sort by local popularity">Local Pop</th>
         <th class="sortable" data-col="length" title="Sort by length">Length</th>
         <th class="sortable" data-col="descent" title="Sort by descent">Descent</th>
@@ -790,6 +800,27 @@ const trails = [
   { name:"Roxburgh Gorge Trail", url:"https://www.trailforks.com/region/alexandra/", region:"Central Otago", area:"Alexandra, Central Otago", gradeNum:2, gradeKey:"blue", rating:4, votes:null, lengthKm:10, descentM:86, localPop:80, source:"tf", notes:"Easy gravelled Clutha River path; ride back or catch a jet boat for the full gorge trail", flags:[] }
 ];
 
+// Weighted score (Bayesian average) - shrinks low-vote ratings toward the
+// dataset mean so a 5.0 from 2 votes doesn't outrank a 4.8 from 50 votes.
+// Trails with an unknown vote count are treated as average confidence
+// (not zero), so missing data isn't mistaken for an unpopular trail.
+const RATED_TRAILS = trails.filter(t => t.rating != null);
+const GLOBAL_MEAN_RATING = RATED_TRAILS.reduce((s, t) => s + t.rating, 0) / RATED_TRAILS.length;
+const VOTED_TRAILS = RATED_TRAILS.filter(t => t.votes != null);
+const MEAN_VOTES = VOTED_TRAILS.reduce((s, t) => s + t.votes, 0) / VOTED_TRAILS.length;
+
+function weightedScore(t) {
+  if (t.rating == null) return null;
+  const v = t.votes != null ? t.votes : MEAN_VOTES;
+  return (v / (v + MEAN_VOTES)) * t.rating + (MEAN_VOTES / (v + MEAN_VOTES)) * GLOBAL_MEAN_RATING;
+}
+
+function weightedCell(t) {
+  const w = weightedScore(t);
+  if (w == null) return '<td class="weighted-cell"><span class="num-na">–</span></td>';
+  return `<td class="weighted-cell">${w.toFixed(2)}</td>`;
+}
+
 // Render grade symbol
 function gradeSymbol(key) {
   if (key === 'blue') {
@@ -885,6 +916,7 @@ function renderTable(data) {
       <td><span class="region-tag">${t.region}</span></td>
       <td>${gradeSymbol(t.gradeKey)}</td>
       <td>${ratingDots(t.rating)}${t.votes ? `<span class="votes">(${t.votes})</span>` : ''}</td>
+      ${weightedCell(t)}
       ${popCell(t.localPop)}
       ${numCell(t.lengthKm, ' km', 1)}
       ${numCell(t.descentM, ' m', 0)}
@@ -926,7 +958,7 @@ function applyFilters() {
 
 function sortTrails(col) {
   if (sortCol === col) { sortDir *= -1; }
-  else { sortCol = col; sortDir = col === 'rating' || col === 'descent' || col === 'length' || col === 'localPop' ? -1 : 1; }
+  else { sortCol = col; sortDir = col === 'rating' || col === 'weighted' || col === 'descent' || col === 'length' || col === 'localPop' ? -1 : 1; }
 
   // Update header classes
   document.querySelectorAll('thead th').forEach(th => {
@@ -937,6 +969,7 @@ function sortTrails(col) {
   const sorted = [...trails].sort((a, b) => {
     let av, bv;
     if (col === 'rating')  { av = a.rating  ?? -1; bv = b.rating  ?? -1; }
+    if (col === 'weighted'){ av = weightedScore(a) ?? -1; bv = weightedScore(b) ?? -1; }
     if (col === 'localPop'){ av = a.localPop ?? -1; bv = b.localPop ?? -1; }
     if (col === 'grade')   { av = a.gradeNum ?? 0;  bv = b.gradeNum ?? 0; }
     if (col === 'length')  { av = a.lengthKm ?? -1; bv = b.lengthKm ?? -1; }
@@ -951,7 +984,7 @@ function sortTrails(col) {
 
 // Init
 document.getElementById('totalCount').textContent = trails.length;
-sortTrails('rating');
+sortTrails('weighted');
 
 // Events
 document.querySelectorAll('thead th.sortable').forEach(th => {
