@@ -802,8 +802,10 @@ const trails = [
 
 // Weighted score (Bayesian average) - shrinks low-vote ratings toward the
 // dataset mean so a 5.0 from 2 votes doesn't outrank a 4.8 from 50 votes.
-// Trails with an unknown vote count are treated as average confidence
-// (not zero), so missing data isn't mistaken for an unpopular trail.
+// Trails with an unknown vote count are treated as UNVERIFIED (v=0, full
+// shrinkage to the mean) rather than average confidence - we have no
+// evidence of real popularity for them, so they shouldn't outrank a
+// trail with a strong, confirmed vote count.
 const RATED_TRAILS = trails.filter(t => t.rating != null);
 const GLOBAL_MEAN_RATING = RATED_TRAILS.reduce((s, t) => s + t.rating, 0) / RATED_TRAILS.length;
 const VOTED_TRAILS = RATED_TRAILS.filter(t => t.votes != null);
@@ -811,7 +813,7 @@ const MEAN_VOTES = VOTED_TRAILS.reduce((s, t) => s + t.votes, 0) / VOTED_TRAILS.
 
 function weightedScore(t) {
   if (t.rating == null) return null;
-  const v = t.votes != null ? t.votes : MEAN_VOTES;
+  const v = t.votes != null ? t.votes : 0;
   return (v / (v + MEAN_VOTES)) * t.rating + (MEAN_VOTES / (v + MEAN_VOTES)) * GLOBAL_MEAN_RATING;
 }
 
