@@ -587,7 +587,7 @@
     <option value="mixed">Mixed grades</option>
   </select>
 
-  <div class="count-badge">Showing <span id="visibleCount">50</span> of 50 trails</div>
+  <div class="count-badge">Showing <span id="visibleCount">0</span> of <span id="totalCount">0</span> trails</div>
 </div>
 
 <div class="table-wrap">
@@ -828,7 +828,9 @@ function sortTrails(col) {
 }
 
 // Init
+document.getElementById('totalCount').textContent = trails.length;
 renderTable(trails);
+applyFilters();
 
 // Events
 document.querySelectorAll('thead th.sortable').forEach(th => {
