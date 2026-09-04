@@ -896,8 +896,7 @@ function sortTrails(col) {
 
 // Init
 document.getElementById('totalCount').textContent = trails.length;
-renderTable(trails);
-applyFilters();
+sortTrails('rating');
 
 // Events
 document.querySelectorAll('thead th.sortable').forEach(th => {
